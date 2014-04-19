@@ -34,7 +34,9 @@ def signup(request):
 			password = form.cleaned_data['Password']
 			first = form.cleaned_data['first']
 			last = form.cleaned_data['last']
-			new_user = process_user(username, password, first, last)
+			email = form.cleaned_data['Email']
+			
+			new_user = process_user(username, password, first, last, email)
 
 			# hold onto that new user we just created, to 
 			# display it in the success page.

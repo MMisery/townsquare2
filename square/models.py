@@ -8,12 +8,14 @@ class Volunteer(models.Model):
     signup_date = models.DateField("Sign-up date", default=datetime.now())
     
     #Editing hours to be a CharField (from FloatField, for typeahead)
-    hours = models.CharField(editable=False, default=0.0, max_length=20) 
+    #Changing to FloatField(temporarily?)
+    hours = models.FloatField(editable=False, default=0.0, max_length=20) 
     credentials = models.CharField(max_length=300, blank=True)
     vol_image = models.CharField(max_length=200, blank=True)
     
     #Editing credit to be a CharField (from FloatField, for typeahead)
-    credit = models.CharField(editable=False, default=0.0, max_length=20)   
+    #Changing to FloatField(temporarily?)
+    credit = models.FloatField(editable=False, default=0.0, max_length=20)   
 
     def full_name(self):
         return self.user.first_name + " " + self.user.last_name
@@ -24,8 +26,8 @@ class Volunteer(models.Model):
 
     def calculate_hours(self):
         
-        #Converting hours to integer
-        int(hours)
+        '''#Converting hours to integer
+        int(hours)'''
         
         hours = 0
         for s in self.session_set.all():
@@ -34,7 +36,8 @@ class Volunteer(models.Model):
                 hour_diff = tdelta.seconds / 3600.0
                 rounded = round(hour_diff, 1)
                 hours += rounded
-        return str(hours)
+        #Having "hours" stay as a float
+        return hours
 
     def save(self, *args, **kwargs):
         self.hours = self.calculate_hours()

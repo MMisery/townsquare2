@@ -1,4 +1,4 @@
-from django.forms import Form, ModelForm, CharField, PasswordInput, BooleanField
+from django.forms import Form, ModelForm, CharField, PasswordInput, BooleanField, EmailField
 from square.models import Event, EventLocation
 
 class AddEventForm(ModelForm):
@@ -15,6 +15,7 @@ class SignupForm(Form):
 	first = CharField(label='First Name')
 	last = CharField(label='Last Name')
 	Username = CharField()
+	Email = EmailField()
 	Password = CharField(widget=PasswordInput())
 	
 	

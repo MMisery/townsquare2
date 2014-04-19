@@ -11,6 +11,7 @@
 
 <tr>
 <th>Name</th>
+<th>Username</th>
 <th>Hours</th>
 </tr>
 
@@ -18,6 +19,7 @@
 {% for volunteer in volunteers %}
 <tr>
 <td>{{volunteer.user.first_name}} {{volunteer.user.last_name}}</td>
+<td>{{volunteer.user.username}}</td>
 <td>{{volunteer.hours}}</td>
 </tr>
 
