@@ -16,7 +16,7 @@ class SignupForm(Form):
 	last = CharField(label='Last Name')
 	Username = CharField()
 	Email = EmailField()
-	Password = CharField(widget=PasswordInput())
+	#Password = CharField(widget=PasswordInput())
 	
 	
 class LoginForm(Form):
