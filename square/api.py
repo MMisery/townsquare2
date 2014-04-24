@@ -22,7 +22,7 @@ class UserResource(ModelResource):
 		
 		queryset = User.objects.all()
 		resource_name = 'user'
-		fields = ['first_name', 'last_name', 'username', 'email']
+		fields = ['first_name', 'last_name']
 		
 		
 

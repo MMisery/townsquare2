@@ -31,14 +31,10 @@ def signup(request):
 		if form.is_valid():
 
 			username = form.cleaned_data['Username']
-			#password = form.cleaned_data['Password']
+			password = form.cleaned_data['Password']
 			first = form.cleaned_data['first']
 			last = form.cleaned_data['last']
-			email = form.cleaned_data['Email']
-			
-			password = User.objects.make_random_password()
-			
-			new_user = process_user(username, password, first, last, email)
+			new_user = process_user(username, password, first, last)
 
 			# hold onto that new user we just created, to 
 			# display it in the success page.

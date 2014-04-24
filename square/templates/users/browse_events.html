@@ -1,0 +1,39 @@
+{% extends "users/index.html" %}
+
+{% block title %}Browse Events{% endblock %}
+
+
+{% block content2 %}
+
+
+<table id="event_list">
+
+    <tr>
+      <td><b>Date</b></td>
+      <td><b>Time</b></td>
+      <td><b>Event Type</b></td>
+      <td><b>Event Location</b></td>
+      <td><b>Event Details</b></td>
+    </tr>
+
+	{% for event in events %}
+	
+		<tr>
+		
+      <td>{{event.date}}</td>
+      <td>{{event.start}} to {{event.end}}</td>
+			<td>{{event.get_event_type_display}}</td>
+			<td>{{event.event_location}}</td>
+      <td><input class="event_details" type="button" 
+            onClick="location.href='/townsquare/event/edit/{{event.id}}'"></input></td>
+		
+		</tr>
+
+	{% endfor %}
+
+</table>
+
+
+
+{% endblock %}
+

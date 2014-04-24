@@ -12,14 +12,13 @@ def dateize(time):
     return datetime.combine(date.today(), time)
 
 
-def process_user(uname, pw, first, last, email):
+def process_user(uname, pw, first, last):
 
 	u = User.objects.create_user(
 		first_name=first, 
 		last_name=last, 
 		password=pw, 
-		username=uname,
-		email=email)
+		username=uname)
 
 	u.save()
 

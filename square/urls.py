@@ -11,24 +11,21 @@ v1_api.register(VolunteerResource())
 
 urlpatterns = patterns('',
 
+    # Anyone can access
     url(r'^about$', views.about),
     url(r'^login$', views.t2login),
+    url(r'^api/', include(v1_api.urls)),
+
+    # Only volunteers/admins can access
     url(r'^logout$', views.t2logout),
     url(r'^volunteer/home$', views.home),
-    url(r'^volunteer/add$', views.signup),
+
+    # Only admins can access
+    url(r'^volunteer/add$', views.add_volunteer),
+    url(r'^volunteer/browse$', views.browse_volunteers),
+    # url(r'^volunteer/edit/(\d+)/$', views.edit_volunteer),
     url(r'^event/add$', views.add_event),
     url(r'^event/browse$', views.browse_events),
-    url(r'^signup-success$', views.t2signup_success),
-    url(r'^volunteer/browse$', views.browse_volunteers),
-
-    # Processing views
-    url(r'^event2$', views.t2addevent),
-    
-    #JSON for typeahead
-    #url(r'^data/nhl.json$', views.nhl)
-    url(r'^data/vol.json$', views.voljson),
-    
-    #Data access
-    url(r'^api/', include(v1_api.urls)),
+    url(r'^event/edit/(\d+)/$', views.edit_event),
  
 )
