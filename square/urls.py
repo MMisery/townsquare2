@@ -26,6 +26,6 @@ urlpatterns = patterns('',
     # url(r'^volunteer/edit/(\d+)/$', views.edit_volunteer),
     url(r'^event/add$', views.add_event),
     url(r'^event/browse$', views.browse_events),
-    url(r'^event/edit/(\d+)/$', views.edit_event),
+    #url(r'^event/edit/(\d+)/$', views.edit_event),
  
 )

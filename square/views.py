@@ -6,7 +6,10 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from square.t2forms import SignupForm, LoginForm, AddEventForm
-from square.utils import process_user, process_event
+
+
+#Moved the processing to processing.py from utils.py
+from square.processing import process_volunteer, process_event
 
 
 def about(request):
@@ -22,7 +25,7 @@ def about(request):
 
 
 @login_required
-def signup(request):
+def add_volunteer(request):
 	if request.method == 'POST':
 		
 		# POST request to signup page does validation/processing
@@ -31,10 +34,14 @@ def signup(request):
 		if form.is_valid():
 
 			username = form.cleaned_data['Username']
-			password = form.cleaned_data['Password']
+			#Still need to determine if "password" field is needed
+			#password = form.cleaned_data['Password']
+			
 			first = form.cleaned_data['first']
 			last = form.cleaned_data['last']
-			new_user = process_user(username, password, first, last)
+			
+			#Taking out the "password" argument; using process_volunteer
+			new_user = process_volunteer(first, last, username)
 
 			# hold onto that new user we just created, to 
 			# display it in the success page.
@@ -46,7 +53,7 @@ def signup(request):
 		# GET request to signup page displays an empty form
 		form = SignupForm()
 
-	return render(request, 'users/signup.html', 
+	return render(request, 'users/add_volunteer.html', 
 					{'f': form})
 
 
@@ -62,7 +69,7 @@ def browse_volunteers(request):
 	
 	vols = Volunteer.objects.all()
 	
-	t = loader.get_template('users/volunteer_browse.html')
+	t = loader.get_template('users/browse_volunteers.html')
 	c = RequestContext(request, {'volunteers':vols,})
 	
 	r = t.render(c)
@@ -123,7 +130,7 @@ def t2login(request):
 @login_required
 def add_event(request):
 	
-	return render(request, 'users/add-event.html', 
+	return render(request, 'users/add_event.html', 
 					{'f': AddEventForm()})
 
 
@@ -154,7 +161,7 @@ def browse_events(request):
 	
 	evs = Event.objects.all()
 	
-	t = loader.get_template('users/event_browse.html')
+	t = loader.get_template('users/browse_events.html')
 	c = RequestContext(request, {'events':evs,})
 	
 	r = t.render(c)

@@ -1,6 +1,7 @@
 from datetime import date, time, datetime
 from django.contrib.auth.models import User
 from square.models import Volunteer, Event, EventLocation
+import random, string
 
 def timeonly_delta(time1, time2):
     start_date = dateize(time1)
@@ -10,6 +11,14 @@ def timeonly_delta(time1, time2):
 
 def dateize(time):
     return datetime.combine(date.today(), time)
+
+
+def gen_password(length=8):
+    myrg = random.SystemRandom()
+    alphabet = string.ascii_letters + string.digits + string.punctuation
+    pw = str().join(myrg.choice(alphabet) for c in range(length))
+    return pw
+
 
 
 def process_user(uname, pw, first, last):
