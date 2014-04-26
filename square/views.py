@@ -1,210 +1,213 @@
 from django.http import HttpResponse, HttpResponseRedirect
-from square.models import Volunteer, Event, EventLocation
-from django.template import Context, Template, loader, RequestContext
 from django.shortcuts import render
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from square.t2forms import SignupForm, LoginForm, AddEventForm
 
-
-#Moved the processing to processing.py from utils.py
-from square.processing import process_volunteer, process_event
+from square.models import Volunteer, Event
+from square.forms import VolunteerForm, LoginForm, EventForm
+from square.processing import process_volunteer, process_volunteer
 
 
 def about(request):
-	
-	blurb = "Something about Townsquare."
-	
-	t = loader.get_template('users/about.html')
-	c = RequestContext(request, {'blurb':blurb,})
-	
-	r = t.render(c)
-	
-	return HttpResponse(r)
+    
+    blurb = "Something about Townsquare."
+    return render(request, 'users/about.html', 
+                    {'blurb': blurb,})
+
+
+def t2login(request):
+    
+    if request.method == 'POST':
+        
+        # POST request to login page does validation/processing
+        form = LoginForm(request.POST)
+        
+        if form.is_valid():
+            
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+        
+            user = authenticate(username=username, password=password)
+            
+            
+            if user is not None:
+            
+                if user.is_active:
+                    
+                    login(request, user)
+                    return HttpResponseRedirect('/townsquare/volunteer/home')
+                    
+                else:
+
+                    # this user is not allowed to access their account
+                    return HttpResponseRedirect('/townsquare/login')
+            
+            else:
+            
+                return HttpResponseRedirect('/townsquare/login')
+                
+    
+    return render(request, 'users/login.html', 
+                    {'f': LoginForm()})
+
+
+@login_required
+def t2logout(request):
+    
+    logout(request)
+    return HttpResponseRedirect('/townsquare/login')
+
+
+@login_required 
+def home(request):
+    
+    #Assign the information on a single volunteer as an admin
+    # NOTE: catch ObjectDoesNotExist exception here, as it may occur.
+    va = Volunteer.objects.get(id=request.user.volunteer.id)
+    
+    return render(request, 'users/index.html',
+                    {'va': va})
 
 
 @login_required
 def add_volunteer(request):
-	if request.method == 'POST':
-		
-		# POST request to signup page does validation/processing
-		form = SignupForm(request.POST)
+    if request.method == 'POST':
+        
+        # POST request to add_volunteer page does validation/processing
+        form = VolunteerForm(request.POST)
 
-		if form.is_valid():
+        if form.is_valid():
 
-			username = form.cleaned_data['Username']
-			#Still need to determine if "password" field is needed
-			#password = form.cleaned_data['Password']
-			
-			first = form.cleaned_data['first']
-			last = form.cleaned_data['last']
-			
-			#Taking out the "password" argument; using process_volunteer
-			new_user = process_volunteer(first, last, username)
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            first = form.cleaned_data['first_name']
+            last = form.cleaned_data['last_name']
+            process_volunteer(first, last, username, password)
 
-			# hold onto that new user we just created, to 
-			# display it in the success page.
-			request.session['new_user'] = new_user.id
+            return HttpResponseRedirect('/townsquare/volunteer/browse')
 
-			return HttpResponseRedirect('/townsquare/signup-success')
+    else:
+        # GET request to add_volunteer page displays an empty form
+        form = VolunteerForm()
 
-	else:
-		# GET request to signup page displays an empty form
-		form = SignupForm()
-
-	return render(request, 'users/add_volunteer.html', 
-					{'f': form})
+    return render(request, 'users/add_volunteer.html', 
+                    {'f': form})
 
 
-def t2signup_success(request):
+# @login_required
+# def edit_volunteer(request, vol_id=None):
 
-	v = Volunteer.objects.get(id=request.session['new_user'])
-	return render(request, 'users/signup-display.html', 
-					{'new_user': v})
+#     if request.method == 'POST':
+
+#         form = VolunteerForm(request.POST)
+
+#         if form.is_valid():
+
+#             # POST request to add_volunteer page does validation/processing
+#             form = VolunteerForm(request.POST)
+
+#             if form.is_valid():
+
+#                 uname = form.cleaned_data['username']
+#                 pw = form.cleaned_data['password']
+#                 first = form.cleaned_data['first_name']
+#                 last = form.cleaned_data['last_name']
+#                 new_user = process_volunteer(first, last, uname, pw)
+
+#             # after a successful save, go to browse events
+#             return HttpResponseRedirect('/townsquare/volunteer/browse')
+
+#     else:
+
+#         vol = Volunteer.objects.get(id=int(vol_id))
+#         vol_fields = {k: v for (k, v) in vol.__dict__ if not k.startswith('_')}
+#         form = VolunteerForm(initial=vol_fields)
+        
+#         return render(request, 'users/edit_volunteer.html',
+#                         {'f': form})
+
+#     # render an HTTP response if it was a GET, or an invalid POST
+#     return render(request, 'users/edit_volunteer.html', 
+#                     {'f': form})
 
 
 @login_required
 def browse_volunteers(request):
-	
-	vols = Volunteer.objects.all()
-	
-	t = loader.get_template('users/browse_volunteers.html')
-	c = RequestContext(request, {'volunteers':vols,})
-	
-	r = t.render(c)
-	
-	return HttpResponse(r)
-
-
-
-
-
-def t2login(request):
-	
-	if request.method == 'POST':
-		
-		# POST request to login page does validation/processing
-		form = LoginForm(request.POST)
-		
-		if form.is_valid():
-			
-			username = form.cleaned_data['Username']
-			password = form.cleaned_data['Password']
-		
-			user = authenticate(username=username, password=password)
-			
-			
-			if user is not None:
-			
-				if user.is_active:
-					
-					login(request, user)
-					#Redirect to success page
-					
-					state="Logged in"
-					
-					#return HttpResponse(views.home)
-					return HttpResponseRedirect('/townsquare/volunteer/home')
-					
-				else:
-					
-					return HttpResponse("Not valid")
-					#Redirect to signup
-			
-			
-			else:
-			
-				return HttpResponse("Sign Up")
-				#Redirect to signup
-			
-			
-				
-	
-	return render(request, 'users/login.html', 
-					{'f': LoginForm()})
-	
-
-	
-		
+    
+    vols = Volunteer.objects.all()
+    return render(request, 'users/browse_volunteers.html',
+                    {'volunteers': vols,})
+    
+        
 @login_required
 def add_event(request):
-	
-	return render(request, 'users/add_event.html', 
-					{'f': AddEventForm()})
+
+    # POST request does processing
+    if request.method == 'POST':
+
+        form = EventForm(request.POST)
+
+        if form.is_valid():
+
+            evt = form.cleaned_data['event_type']
+            evl = form.cleaned_data['event_location']
+            d = form.cleaned_data['date']
+            start = form.cleaned_data['start']
+            end = form.cleaned_data['end']
+            n = form.cleaned_data['notes']
+            ivt = form.cleaned_data['is_volunteer_time']
+            process_event(evt, evl, d, start, end, n, ivt)
+
+            return HttpResponseRedirect('/townsquare/event/browse')
+
+    else:
+        # GET request sends an empty form
+        form = EventForm()
+
+    # render an HTTP response if it was a GET, or an invalid POST
+    return render(request, 'users/add_event.html', 
+                    {'f': form})
 
 
 @login_required
-def t2addevent(request):
-	
-	""" Takes information from the addevent form and dumps
-		it into the database """
-	
-	if request.method == 'POST':
-		
-		evt = request.POST['event_type']
-		evl = request.POST['event_location']
-		d = request.POST['date']
-		start = request.POST['start']
-		end = request.POST['end']
-		n = request.POST['notes']
-		ivt = True if request.POST.get('is_volunteer_time', None) else False
-		
-		new_event = process_event(evt, evl, d, start, end, n, ivt)
-	
-		return render(request, 'users/display-event.html', 
-						{'new_event': new_event})
+def edit_event(request, event_id=None):
+
+    if request.method == 'POST':
+
+        form = EventForm(request.POST)
+
+        if form.is_valid():
+
+            evt = form.cleaned_data['event_type']
+            evl = form.cleaned_data['event_location']
+            d = form.cleaned_data['date']
+            start = form.cleaned_data['start']
+            end = form.cleaned_data['end']
+            n = form.cleaned_data['notes']
+            ivt = form.cleaned_data['is_volunteer_time']
+            process_event(evt, evl, d, start, end, n, ivt)
+
+            # after a successful save, go to browse events
+            return HttpResponseRedirect('/townsquare/event/browse')
+
+    else:
+
+        event = Event.objects.get(id=int(event_id))
+        form = EventForm(instance=event)
+        return render(request, 'users/edit_event.html',
+                        {'f': form})
+
+    # render an HTTP response if it was a GET, or an invalid POST
+    return render(request, 'users/edit_event.html', 
+                    {'f': form})
 
 
 @login_required
 def browse_events(request):
-	
-	evs = Event.objects.all()
-	
-	t = loader.get_template('users/browse_events.html')
-	c = RequestContext(request, {'events':evs,})
-	
-	r = t.render(c)
-	
-	return HttpResponse(r)
-
-
-
-
-		
-	
-def t2logout(request):
-	
-	logout(request)
-	return HttpResponse("Logged out")
-
-
-@login_required	
-def home(request):
-	
-	#Assign the information on a single volunteer as an admin
-	# NOTE: catch ObjectDoesNotExist exception here, as it may occur.
-	va = Volunteer.objects.get(id=request.user.volunteer.id)
-	
-	return render(request, 'users/index.html',
-					{'va': va})
-
-
-def nhl(request):
-	
-	datafile = '[{ "team": "New Jersey Devils" },{ "team": "New York Islanders" },{ "team": "New York Rangers" },{ "team": "Philadelphia Flyers" },{ "team": "Pittsburgh Penguins" },{ "team": "Chicago Blackhawks" },{ "team": "Columbus Blue Jackets" },{ "team": "Detroit Red Wings" },{ "team": "Nashville Predators" },{ "team": "St. Louis Blues" },{ "team": "Boston Bruins" },{ "team": "Buffalo Sabres" },{ "team": "Montreal Canadiens" },{ "team": "Ottawa Senators" },{ "team": "Toronto Maple Leafs" },{ "team": "Calgary Flames" },{ "team": "Colorado Avalanche" },{ "team": "Edmonton Oilers" },{ "team": "Minnesota Wild" },{ "team": "Vancouver Canucks" },{ "team": "Carolina Hurricanes" },{ "team": "Florida Panthers" },{ "team": "Tampa Bay Lightning" },{ "team": "Washington Capitals" },{ "team": "Winnipeg Jets" },{ "team": "Anaheim Ducks" },{ "team": "Dallas Stars" },{ "team": "Los Angeles Kings" },{ "team": "Phoenix Coyotes" },{ "team": "San Jose Sharks" }]'
-
-	return HttpResponse(datafile)
-
-
-
-def voljson(request):
-	
-	datafile = '[{"pk": "1", "model": "square.volunteer", "fields": {"signup_date": "2013-11-21", "hours": "0.0", "credit": "0.0", "user": "5", "credentials": "", "vol_image": ""}}, {"pk": "2", "model": "square.volunteer", "fields": {"signup_date": "2013-12-14", "hours": "0.0", "credit": "0.0", "user": "6", "credentials": "", "vol_image": ""}}]'
-	
-	return HttpResponse(datafile)
-	
-	
-	
-	
+    
+    evs = Event.objects.all()
+    return render(request, 'users/browse_events.html',
+                    {'events': evs,})
+    
+    
 

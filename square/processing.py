@@ -1,49 +1,142 @@
-
-from django.contrib.auth.models import User
 from square.models import Volunteer, Event, EventLocation
-from square.utils import gen_password
+from square.utils import gen_password, gen_username
+from square.forms import VolunteerForm, LoginForm, EventForm
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.models import User
+from datetime import datetime
 
 
-def process_volunteer(first, last, uname=None, pw=None):
+def process_valid_login_post(request, form):
 
-    v = Volunteer()
+    username = form.cleaned_data['username']
+    password = form.cleaned_data['password']
+    
+    user = authenticate(username=username, password=password)           
+    if (user is not None) and user.is_active:
+    
+        login(request, user)
+        return True
+    
+    else:
+        return False
 
-    if not uname:
-        # if a username is not provided, make one from 
-        # first name, last name, and sign up date
-        uname = '{0}{1}:{2}' % \
-            (first, last, v.signup_date.strftime('%m-%d-%y'))
 
-    if not pw:
-        # if a password is not provided, generate a random one 
-        pw = gen_password(length=8)
+def process_valid_volunteer_post(form, vol_id=None):
 
-    # associate a django user object with this volunteer
-    u = User.objects.create_user(
-        first_name=first, 
-        last_name=last, 
-        password=pw, 
-        username=uname)
+    new_username = form.cleaned_data['username']
+    new_password = form.cleaned_data['password']
 
-    u.save()
-    v.user = u
-    v.save()
+    # set user permissions based on volunteer credentials
+    # permissions = {
+    #     'ST' : 'is_superuser',
+    #     'AD' : 'is_staff',
+    #     'VO' : ''
+    # }
+    # new_permissions = form.cleaned_data['credentials']
+    # TODO: add proper permissions to user model
 
-    return v
+
+    # if a username is not provided, make one from 
+    # first name, last name, and sign up date
+    new_firstname = form.cleaned_data['first_name']
+    new_lastname = form.cleaned_data['last_name']
+    if not new_username:
+        new_username = gen_username(new_firstname, new_lastname,
+                                        datetime.now())
+
+
+    # find out whether new username is being used
+    try:
+        user = User.objects.get(username=new_username)
+
+        # if it is, make sure it's by volunteer we're editing 
+        if user.volunteer.id == vol_id:
+
+            # update user fields if supplied
+            if new_username:
+                user.username = new_username
+            if new_password:
+                user.password = new_password
+
+    # new username hasn't been taken
+    except User.DoesNotExist:
+
+        try:
+            # try to get the volunteer we're editing
+            vol = Volunteer.objects.get(id=vol_id)
+
+            # if it exists, get that volunteer's associated user
+            user = vol_queryset[0].user
+
+            # update the username and password of the user
+            # with the new fields
+            user.username = new_username
+            user.password = new_password
+
+        # if there is no volunteer yet, just create the new user
+        except Volunteer.DoesNotExist:
+
+            user = User.objects.create_user(new_username, password=new_password)
+
+    user.save()
+
+
+    # define a set of volunteer fields, and get them from the form
+    vol_fieldnames = ['first_name', 'last_name', 'credentials']
+    vol_fields = {k: form.cleaned_data[k] for k in form.fields if k and k in vol_fieldnames}
+    
+    # add the user we updated/created to the volunteer fields
+    vol_fields['user'] = user
+
+
+    # update/create the volunteer
+    try:
+        vol = Volunteer.objects.get(user=user)
+        vol.__dict__.update(**vol_fields)
+    except Volunteer.DoesNotExist:
+        vol = Volunteer.objects.create(**vol_fields)
+
+    vol.save()
 
     
-def process_event(event_type, event_location, date, start_time, end_time, 
-                    notes, is_volunteer_time):
-    
-    e = Event(
-        event_type=event_type,
-        event_location=event_location,
-        date=date,
-        start=start_time,
-        end=end_time,
-        notes=notes,
-        is_volunteer_time=is_volunteer_time)
-    
-    e.save()
-    
-    return e
+def process_volunteer_get(vol_id):
+
+    if vol_id is None:
+        raise Exception("Can't POST to this URL. Try editing a specific "
+                        "volunteer: append '/n', where n is the id of the "
+                        "volunteer you want.")
+
+    vol = Volunteer.objects.get(id=int(vol_id))
+    vol_fields = {  
+            'first_name': vol.first_name, 
+            'last_name': vol.last_name,
+            'username': vol.user.username,
+            'password': vol.user.password,
+            'credentials': vol.credentials
+    }
+    return VolunteerForm(initial=vol_fields) 
+
+
+def process_valid_event_post(form, vol_id=None):
+
+    update_fields = {}
+    for k in form.fields:
+        if form.cleaned_data[k]:
+            update_fields[k] = form.cleaned_data[k]
+
+    result = Event.objects.update(**update_fields)
+    if not result:
+        e = Event(**update_fields)
+        e.save()
+
+
+def process_event_get(event_id):
+
+    if event_id is None:
+        raise Exception("Can't POST to this URL. Try editing a specific "
+                        "event: append '/n', where n is the id of the event "
+                        "you want .")
+
+    event = Event.objects.get(id=int(event_id))
+    return EventForm(instance=event)
+

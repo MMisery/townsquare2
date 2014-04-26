@@ -1,29 +1,25 @@
+
 from django.db import models
 from datetime import datetime
 from django.contrib.auth.models import User
+
 
 class Volunteer(models.Model):
         
     user = models.OneToOneField(User, null=True, unique=True)
     signup_date = models.DateField("Sign-up date", default=datetime.now())
-    
-    
     hours = models.FloatField(editable=False, default=0.0, max_length=20) 
     credentials = models.CharField(max_length=300, blank=True)
     vol_image = models.CharField(max_length=200, blank=True)
-    
-    
     credit = models.FloatField(editable=False, default=0.0, max_length=20)   
 
     def full_name(self):
         return self.user.first_name + " " + self.user.last_name
         
     def natural_key(self):
-		
 		return self.full_name()
 
     def calculate_hours(self):
-                     
         hours = 0
         for s in self.session_set.all():
             if s.event.is_volunteer_time:
@@ -31,7 +27,7 @@ class Volunteer(models.Model):
                 hour_diff = tdelta.seconds / 3600.0
                 rounded = round(hour_diff, 1)
                 hours += rounded
-        return str(hours)
+        return hours
 
     def save(self, *args, **kwargs):
         self.hours = self.calculate_hours()
@@ -40,6 +36,7 @@ class Volunteer(models.Model):
 
     def __unicode__(self):
         return self.full_name()
+
 
 class EventLocation(models.Model):
     full_name = models.CharField(max_length=200)
@@ -50,6 +47,7 @@ class EventLocation(models.Model):
 
     def __unicode__(self):
         return self.full_name
+
 
 class Event(models.Model):
     EVENT_TYPES = {
@@ -67,10 +65,11 @@ class Event(models.Model):
     is_volunteer_time = models.BooleanField('Counts towards volunteer hours')
 
     def __unicode__(self):
-	for abbrev, longform in self.EVENT_TYPES:
+    	for abbrev, longform in self.EVENT_TYPES:
             if abbrev == self.event_type:
                 long_type = longform
-        return "%s on %s" % (long_type, self.date)
+            return "%s on %s" % (long_type, self.date)
+
 
 class Session(models.Model):
     volunteer = models.ForeignKey(Volunteer)
@@ -88,3 +87,4 @@ class Session(models.Model):
 
 
 from utils import timeonly_delta
+
