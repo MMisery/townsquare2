@@ -19,8 +19,6 @@ def gen_password(length=8):
     pw = str().join(myrg.choice(alphabet) for c in range(length))
     return pw
 
-<<<<<<< HEAD
-
 
 def process_user(uname, pw, first, last):
 
@@ -56,11 +54,10 @@ def process_event(evt, evl, d, start, end, notes, vt):
 	return(e)
 		
 		
-=======
     
 def gen_username(first_name, last_name, date):
     return '{0}{1}:{2}'.format(
             first, last, v.signup_date.strftime('%m-%d-%y'))
 
 
->>>>>>> sc3/rawstrap
+
