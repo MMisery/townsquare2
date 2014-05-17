@@ -30,5 +30,8 @@ urlpatterns = patterns('',
     url(r'^townsquare/event/browse$', views.browse_events),
     url(r'^townsquare/event/edit$', views.edit_event),
     url(r'^townsquare/event/edit/(\d+)/$', views.edit_event),
+    
+    #API
+    url(r'^api/', include(v1_api.urls))
      
 )

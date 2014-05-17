@@ -16,9 +16,9 @@ class Volunteer(models.Model):
         evalulating hours served, store credit available,
         last seen date, and permission level. """
 
-    STAFF = 'S'
-    ADMIN = 'A'
-    VOLUNTEER = 'V'
+    STAFF = 'Staff'
+    ADMIN = 'Admin'
+    VOLUNTEER = 'Volunteer'
     PERMISSION_GROUPS = {
         (STAFF, 'Staff'),
         (ADMIN, 'Admin'),
@@ -146,7 +146,7 @@ class Event(models.Model):
     start = models.TimeField(default=time(11))
     end = models.TimeField(default=time(11))
     location = models.ForeignKey(EventLocation, 
-            default=initial_event_location()) 
+            default=initial_event_location) 
     notes = models.TextField(blank=True)
     is_volunteer_time = models.BooleanField(
             'Counts towards volunteer hours', 
