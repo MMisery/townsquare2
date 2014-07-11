@@ -70,7 +70,7 @@ def add_volunteer(request):
 
     else:
         # GET request to add_volunteer page displays an empty form
-        form = VolunteerForm()
+        form = VolunteerForm(initial={'credentials': 'Volunteer'})
 
     return render(request, 'users/add_volunteer.html', 
                     {'f': form})
@@ -154,6 +154,7 @@ def edit_event(request, event_id=None):
 
 @login_required
 def browse_events(request):
+    
     evs = Event.objects.all()
     return render(request, 'users/browse_events.html',
                     {'events': evs,})
