@@ -157,6 +157,47 @@ def browse_events(request):
     evs = Event.objects.all()
     return render(request, 'users/browse_events.html',
                     {'events': evs,})
+
+
+@login_required
+def add_session(request):
+	
+	# POST request does processing
+    if request.method == 'POST':
+
+        form = SessionForm(request.POST)
+
+        if form.is_valid():
+
+		#As it stands, probably just going to bounce to the event browse, though the browse should eventually contain session data.
+
+            process_valid_event_post(form)
+            return HttpResponseRedirect('/townsquare/event/browse')
+
+    else:
+        # GET request sends an empty form
+        form = SessionForm()
+
+    # render an HTTP response if it was a GET, or an invalid POST
+    return render(request, 'users/add_session.html', 
+                    {'f': form})
+
+
+@login_required
+def edit_session(request, event_id=None):
+	
+	#Viewing info on vols who attended event
+	#pass
+	
+	return render(request, 'users/edit_session.html')
+
+
+
+
     
-    
+@login_required
+def browse_sessions(request):
+	sesh = Session.objects.all()
+	return render(request, 'users/browse_sessions.html',
+                    {'sessions': sesh,})    
 

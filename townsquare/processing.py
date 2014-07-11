@@ -130,4 +130,15 @@ def process_event_get(event_id):
         return EventForm(instance=event)
         
 
-
+def process_session():
+	
+	#Still need to figure out what'll go in this one.
+	
+	#Has to take input from form: vol name, event, time in, time out, orientation (boolean value).
+	#Has to see if volunteer exists; if not (as if in the case of a new vol), create one.
+	#Clean the form data.
+	#Save to session model.
+	#Update volunteer hours.
+	#Be able to return to a session form/sign-in sheet from events browse.
+	
+	pass

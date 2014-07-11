@@ -4,7 +4,7 @@ from django.forms import Form, ModelForm, CharField, PasswordInput, \
         DateField, TimeField
 from django.contrib.admin.widgets import AdminTimeWidget, AdminDateWidget
 
-from townsquare.models import Event, EventLocation, Volunteer
+from townsquare.models import Event, EventLocation, Volunteer, Session
 from townsquare.models import initial_event_location
 
 from datetime import datetime, time
@@ -49,3 +49,12 @@ class LoginForm(Form):
     username = CharField(label='Username')
     password = CharField(label='Password', widget=PasswordInput())
 
+
+
+class SessionForm(ModelForm):
+	
+	#Form to attach volunteers/participants to events.	
+	
+	class Meta:
+		model = Session
+		

@@ -14,6 +14,7 @@
       <td><b>Type</b></td>
       <td><b>Location</b></td>
       <td><b>Details</b></td>
+      <td><b>Participants</b></td>
     </tr>
 
 	{% for event in events %}
@@ -24,6 +25,11 @@
       <td>{{event.location}}</td>
       <td><input class="event-details" type="button" 
             onClick="location.href='/townsquare/event/edit/{{event.id}}'"></input></td>
+      
+      <!--Want to have the session pulled up according to the event ID-->
+      
+      <td><input class="session-details" type="button" 
+            onClick="location.href='/townsquare/session/edit/{{event.id}}'"></input></td>
 		</tr>
   {% endfor %}
 

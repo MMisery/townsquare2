@@ -1,0 +1,27 @@
+{% extends "users/index.html" %}
+
+{% block title %}Edit Sessions{% endblock %}
+
+
+{% block content2 %}
+
+
+<!--Some horrible mockup to get the basic formatting in place. Clean up with CSS later.-->
+<!--Have to make sure the page knows at which event it's supposed to be looking.-->
+
+{% for id in event.id %}
+
+<center>
+
+	<h1>{{event.type}}</h1></br>
+	<h2>{{event.date}}</h2></br>
+	<h5>{{event.start}} to {{event.end}}</h5></br>
+
+</center>
+
+{% endfor %}
+
+
+
+
+{% endblock %}
